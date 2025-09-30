@@ -57,6 +57,7 @@ class League(object):
         print(f"{self.name:>15}: Skill {self.avg_weighted_skill:.3f}")
 
     def rate_teams(self):
+        print(f"=== {self.name} ===")
         for t in self.teams:
             t.rate()
 
@@ -103,6 +104,11 @@ class Team(object):
         
     def rate(self):
         print(f"{self.name:>15}: Skill {self.avg_weighted_skill:.3f}")
+
+    def rate_players(self):
+        print(f"=== {self.name} ===")
+        for p in self.players:
+            p.rate()
 
     def get_league(self):
         teams, league_name = self.retrieve_teams_in_league()
@@ -151,6 +157,11 @@ class Player(object):
 
     def rate(self):
         print(self)
+
+    def rate_seasons(self):
+        print(f"=== {self.name} ===")
+        for s in self.seasons:
+            print(s)
     
     def retrieve_name(self):
         return self.soup.find("h4").text 
@@ -286,8 +297,17 @@ class RecLeagueStats(object):
     def rate_team(self, team_id):
         self.get_team(team_id).rate()
 
-    def rate_teams_league(self, team_id):
+    def rate_league(self, team_id):
         self.get_teams_league(team_id).rate()
+
+    def rate_all_seasons_for_player(self, player_id):
+        self.get_player(player_id).rate_seasons()
+
+    def rate_all_players_on_team(self, team_id):
+        self.get_team(team_id).rate_players()
+
+    def rate_all_teams_in_league(self, team_id):
+        self.get_teams_league(team_id).rate_teams()
 
     def get_team(self, team_id):
         return Team(team_id, self.company)
@@ -301,17 +321,28 @@ class RecLeagueStats(object):
         return League(teams=league_teams, name=league_name)
 
 
-def run(username, password, company, player_ids=[], team_ids=[], league_team_ids=[]):
+def run(username, password, company, player_ids=[], team_ids=[], league_team_ids=[], rate_subcomponents=False):
     rls = RecLeagueStats(company)
     rls.login(username, password)
 
-    for p in player_ids:
-        rls.rate_player(p)
+    if rate_subcomponents:
+        for p in player_ids:
+            rls.rate_all_seasons_for_player(p)
 
-    for t in team_ids:
-        rls.rate_team(t)
+        for t in team_ids:
+            rls.rate_all_players_on_team(t)
 
-    for l in league_team_ids:
-        rls.rate_teams_league(l)
+        for l in league_team_ids:
+            rls.rate_all_teams_in_league(l)
+
+    else:
+        for p in player_ids:
+            rls.rate_player(p)
+
+        for t in team_ids:
+            rls.rate_team(t)
+
+        for l in league_team_ids:
+            rls.rate_league(l)
     
 
