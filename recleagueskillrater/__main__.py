@@ -24,7 +24,7 @@ class PasswordPromptAction(argparse.Action):
              help=help)
 
     def __call__(self, parser, args, values, option_string=None):
-        password = getpass.getpass()
+        password = getpass.getpass("Daysmart Password: ")
         setattr(args, self.dest, password)
 
 
