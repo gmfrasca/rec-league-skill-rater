@@ -5,6 +5,7 @@ from .player import Player
 from .const import BASEURL
 import requests
 import getpass
+import json
 
 
 class RecLeagueStats(object):
@@ -58,6 +59,65 @@ class RecLeagueStats(object):
         league_teams, league_name = team.retrieve_teams_in_league()
         return League(teams=league_teams, name=league_name)
 
+
+def export_to_csv(username, password, company, player_ids=[], team_ids=[], league_team_ids=[], rate_subcomponents=False):
+    data = retrieve_data(username, 
+                         password, 
+                         company, 
+                         player_ids, 
+                         team_ids, 
+                         league_team_ids, 
+                         rate_subcomponents)
+
+    # Normalize
+    def normalize_player_list(player_data):
+        def normalize_player_data(p):
+            return {
+                "name": p.name,
+                "max_level": p.max_level,
+                "weighted_avg_level": p.weighted_avg_level
+            }
+
+        players = player_data if isinstance(player_data, list) else player_data.values()
+
+        return [normalize_player_data(x) for x in players]
+    teams = []
+    if data["players"]:
+        teams.append({"id": 0, "name": "Default Team", "players": normalize_player_list(data["players"])})
+
+    for id, t in data["teams"].items():
+        if id not in teams:
+            teams.append({"id": t.id, "name": t.name, "players": normalize_player_list(t.players)})
+
+    for l_id, l in data["leagues"].items():
+        for id, t in l.teams.items():
+            if id not in teams:
+                teams.append({"id": t.id, "name": t.name, "players": normalize_player_list(t.players)})
+    
+
+def retrieve_data(username, password, company, player_ids=[], team_ids=[], league_team_ids=[], rate_subcomponents=False):
+    rls = RecLeagueStats(company)
+    rls.login(username, password)
+
+    leagues = {}
+    teams = {}
+    players = {}
+
+    for p in player_ids:
+        players[p] = rls.get_player(p)
+
+    for t in team_ids:
+        teams[t] = rls.get_team(t)
+
+    for l in league_team_ids:
+        league_id = f"league-{l}"  # TODO: get the actual league name
+        leagues[l] = rls.get_teams_league(l)
+
+    return {
+        "leagues": leagues,
+        "teams": teams,
+        "players": players
+    }
 
 def run(username, password, company, player_ids=[], team_ids=[], league_team_ids=[], rate_subcomponents=False):
     rls = RecLeagueStats(company)
