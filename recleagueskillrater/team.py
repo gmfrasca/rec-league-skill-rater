@@ -1,7 +1,7 @@
 from urllib.parse import urlparse, parse_qs
 from bs4 import BeautifulSoup
+from .store import player_store as ps
 from .league import League
-from .player import Player
 from .const import BASEURL
 
 
@@ -34,7 +34,8 @@ class Team(object):
             if id and 'cust' in id:
                 player_id = id[4:]
                 try:
-                    players.append(Player(self.session, player_id, self.company))
+                    player = ps.get_player(self.session, player_id, self.company)
+                    players.append(player)
                 except:
                     pass  # TODO Handle Error (example: stats not available for minor players)
 
@@ -69,6 +70,8 @@ class Team(object):
     @property
     def avg_weighted_skill(self):
         avg_skill = 0
+        if len(self.players) == 0:
+            return 0
         for p in self.players:
             avg_skill += p.weighted_avg_level
         return avg_skill / len(self.players)
@@ -78,4 +81,4 @@ class Team(object):
             print(p)
 
     def rate_player(self, player_id):
-        Player(self. session, player_id, self.company).rate()
+        player_store.get_player(self.session, player_id, self.company).rate()

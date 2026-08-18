@@ -3,8 +3,10 @@ from .league import League
 from .team import Team
 from .player import Player
 from .const import BASEURL
+from .store import player_store
 import requests
 import getpass
+import logging
 import json
 import csv
 
@@ -12,6 +14,7 @@ import csv
 class RecLeagueStats(object):
     
     def __init__(self, company):
+        self._logger = logging.getLogger(self.__class__.__name__)
         self.company = company
 
         self.session = requests.Session()
@@ -21,6 +24,7 @@ class RecLeagueStats(object):
 
     def login(self, username, password):
         login_page=f"{BASEURL}/dash/jsonapi/api/v1/customer/auth/token?company={self.company}"
+        self._logger.info(f"Logging in to {login_page}")
         login_payload = {
             "grant_type": "client_credentials",
             "client_id": username,
@@ -53,7 +57,7 @@ class RecLeagueStats(object):
         return Team(self.session, team_id, self.company)
 
     def get_player(self, player_id):
-        return Player(self.session, player_id, self.company)
+        return player_store.get_player(self.session, player_id, self.company)
 
     def get_teams_league(self, team_id):
         team = Team(self.session, team_id, self.company)

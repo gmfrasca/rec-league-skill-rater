@@ -32,6 +32,8 @@ class League(object):
     @property
     def avg_weighted_skill(self):
         avg_skill = 0
+        if len(self.teams) == 0:
+            return 0
         for t in self.teams:
             avg_skill += t.avg_weighted_skill
         return avg_skill / len(self.teams)
