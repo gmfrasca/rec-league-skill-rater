@@ -70,6 +70,8 @@ class Team(object):
     @property
     def avg_weighted_skill(self):
         avg_skill = 0
+        if len(self.players) == 0:
+            return 0
         for p in self.players:
             avg_skill += p.weighted_avg_level
         return avg_skill / len(self.players)
