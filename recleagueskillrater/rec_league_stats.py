@@ -3,6 +3,7 @@ from .league import League
 from .team import Team
 from .player import Player
 from .const import BASEURL
+from .store import PlayerStore
 import requests
 import getpass
 import json
@@ -18,6 +19,9 @@ class RecLeagueStats(object):
         a = requests.adapters.HTTPAdapter(max_retries=5)
         self.session.mount('http://', a)
         self.session.mount('https://', a)
+
+        # Cache Stores
+        self.player_store = PlayerStore()
 
     def login(self, username, password):
         login_page=f"{BASEURL}/dash/jsonapi/api/v1/customer/auth/token?company={self.company}"
