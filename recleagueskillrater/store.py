@@ -1,6 +1,8 @@
 from .player import Player
 import datetime
 import logging
+import pickle
+
 
 REFRESH_THRESHOLD = 24 * 60 * 60  # one day
 
@@ -46,6 +48,15 @@ class PlayerStore(object):
             player = Player(session, player_id, company)
             self.set_player(player_id, player)
         return player
+
+    def to_pickle(self, dest_file):
+        with open(dest_file, "wb") as file:
+            pickle.dump(self.players, file)
+
+    def from_pickle(self, src_file):
+        with open(src_file, "rb") as file:
+            self.players = pickle.load(file)
+
 
 # Singletons
 player_store = PlayerStore()
