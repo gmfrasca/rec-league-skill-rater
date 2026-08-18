@@ -9,10 +9,11 @@ class PlayerEntry(object):
     def __init__(self, player, refresh_threshold=REFRESH_THRESHOLD):
         self.player = player
         self.refreshed_at = datetime.datetime.now()
-        self.refresh_threshold = refresh_threshold
+        self.refresh_threshold = datetime.timedelta(seconds=refresh_threshold)
 
     def data_is_expired(self):
-        return self.refreshed_at.total_seconds() + self.refresh_threshold > datetime.datetime.now().total_seconds()
+        ref_by = self.refreshed_at + self.refresh_threshold
+        return ref_by < datetime.datetime.now()
 
 
 class PlayerStore(object):
@@ -34,14 +35,14 @@ class PlayerStore(object):
         player_entry = self.players.get(player_id)
         if player_entry is not None:
             if not player_entry.data_is_expired():
-                self._logger.debug(f"Player {player_id} already in store.")
+                self._logger.info(f"Player {player_id} already in store.")
                 player = player_entry.player
             else:
-                self._logger.debug(f"Player {player_id} found but data is stale")
+                self._logger.info(f"Player {player_id} found but data is stale")
                 player = Player(session, player_id, company)
                 self.set_player(player_id, player)
         else:
-            self._logger.debug(f"No player {player_id} in PlayerStore")
+            self._logger.info(f"No player {player_id} in PlayerStore")
             player = Player(session, player_id, company)
             self.set_player(player_id, player)
         return player
